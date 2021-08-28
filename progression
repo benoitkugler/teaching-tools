@@ -1,0 +1,172 @@
+{
+ "metadata": {
+  "language_info": {
+   "codemirror_mode": {
+    "name": "ipython",
+    "version": 3
+   },
+   "file_extension": ".py",
+   "mimetype": "text/x-python",
+   "name": "python",
+   "nbconvert_exporter": "python",
+   "pygments_lexer": "ipython3",
+   "version": "3.8.10-final"
+  },
+  "orig_nbformat": 2,
+  "kernelspec": {
+   "name": "python381064bit7d04a46295644f72a1c08d7507c7b618",
+   "display_name": "Python 3.8.10 64-bit"
+  }
+ },
+ "nbformat": 4,
+ "nbformat_minor": 2,
+ "cells": [
+  {
+   "cell_type": "code",
+   "execution_count": 85,
+   "metadata": {},
+   "outputs": [],
+   "source": [
+    "import csv "
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 44,
+   "metadata": {},
+   "outputs": [],
+   "source": [
+    "problems_requirements = []\n",
+    "with open(\"problemes_math_comp.csv\") as f:\n",
+    "    for line in csv.reader(f):\n",
+    "        l = set(i for (i, v) in enumerate(line) if v == '1')\n",
+    "        problems_requirements.append(l)\n",
+    "assert(len(problems_requirements) == 44)\n",
+    "\n",
+    "NB_CHAPITRES = max(max(v) for v in problems_requirements if v) + 1\n",
+    "assert(NB_CHAPITRES == 9)"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 92,
+   "metadata": {},
+   "outputs": [
+    {
+     "output_type": "stream",
+     "name": "stdout",
+     "text": [
+      "Chapter 1 in 13 problems\nChapter 2 in 6 problems\nChapter 3 in 6 problems\nChapter 4 in 7 problems\nChapter 5 in 7 problems\nChapter 6 in 8 problems\nChapter 7 in 9 problems\nChapter 8 in 6 problems\nChapter 9 in 4 problems\n"
+     ]
+    }
+   ],
+   "source": [
+    "for i in range(NB_CHAPITRES):\n",
+    "    nb = sum(i in req for req in problems_requirements)\n",
+    "    print(\"Chapter\", i+1, \"in\", nb, \"problems\")"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 24,
+   "metadata": {},
+   "outputs": [],
+   "source": [
+    "def problems_available(progression):\n",
+    "    current_prog = set(progression)\n",
+    "    problems = []\n",
+    "    for (prob, req) in enumerate(problems_requirements):\n",
+    "        if current_prog.issuperset(req):\n",
+    "            problems.append(prob)\n",
+    "    return problems"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 30,
+   "metadata": {},
+   "outputs": [],
+   "source": [
+    "def evolution_nb_problems(progression):\n",
+    "    nbs = []\n",
+    "    for i in range(len(progression)):\n",
+    "        nb = len(problems_available(progression[:i+1]))\n",
+    "        nbs.append(nb)\n",
+    "    return nbs \n",
+    "\n",
+    "# evolution_nb_problems([0,1,2,3,4,5,6,7,8])"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 76,
+   "metadata": {},
+   "outputs": [
+    {
+     "output_type": "stream",
+     "name": "stdout",
+     "text": [
+      "4.0\n4.0\n"
+     ]
+    }
+   ],
+   "source": [
+    "def regularite_progression(nb_problems):\n",
+    "    return min(v / (i+1) for (i, v) in enumerate(nb_problems))\n",
+    "\n",
+    "print(regularite_progression(evolution_nb_problems([0,1,2,3,4,5,6,7,8])))\n",
+    "print(regularite_progression(evolution_nb_problems([0,7,1,2,3,4,5,6,8])))"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 77,
+   "metadata": {},
+   "outputs": [
+    {
+     "output_type": "stream",
+     "name": "stdout",
+     "text": [
+      "Testing 362880 progressions...\n",
+      "99.8 %"
+     ]
+    }
+   ],
+   "source": [
+    "import math, itertools\n",
+    "def best_progression():\n",
+    "    nb_ops = math.factorial(9)\n",
+    "    print(\"Testing\", nb_ops, \"progressions...\")\n",
+    "    best, best_progression = 0, None\n",
+    "    for (i, perm) in enumerate(itertools.permutations(range(NB_CHAPITRES))):\n",
+    "        if i % 1000 == 0:\n",
+    "            print(f'\\r{100 * i / nb_ops:.1f} %', end = '')\n",
+    "        max_gradient = regularite_progression(evolution_nb_problems(perm))\n",
+    "        if max_gradient > best:\n",
+    "            best = max_gradient\n",
+    "            best_progression = perm\n",
+    "    return best, best_progression\n",
+    "\n",
+    "score, progession = best_progression()"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 83,
+   "metadata": {},
+   "outputs": [
+    {
+     "output_type": "stream",
+     "name": "stdout",
+     "text": [
+      "Best progression: [1, 2, 5, 6, 7, 4, 3, 8, 9] with score 4.888888888888889\nProblems available: [9, 11, 15, 20, 25, 30, 36, 40, 44]\n"
+     ]
+    }
+   ],
+   "source": [
+    "print(\"Best progression:\", [p +1 for p in progession], \"with score\", score)\n",
+    "print(\"Problems available:\", evolution_nb_problems(progession))"
+   ]
+  }
+ ]
+}
